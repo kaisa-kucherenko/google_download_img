@@ -33,3 +33,24 @@ def find_imgs_urls(fc_name, img_number=3):
         src_list.append(src)
     browser.quit()
     return src_list
+
+
+def download_imgs(fc_name, src_list):
+    file_name = f'{fc_name}.png'
+    dir_name = os.path.join(directory, fc_name)
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
+    for index, src in enumerate(src_list):
+        if index == 0:
+            image_path = os.path.join(dir_name, file_name)
+        else:
+            image_path = os.path.join(dir_name, f'{fc_name}_{index}.png')
+        try:
+            response = requests.get(src, stream=True)
+            with open(image_path, 'wb') as file:
+                shutil.copyfileobj(response.raw, file)
+        except Exception:
+            print(f'src {src} cant download')
+            pass
+
+
