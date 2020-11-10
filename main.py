@@ -19,4 +19,17 @@ def get_fc_names_lists(xlsm_file_name):
     work_book.close()
     return fc_names_list_clean, fc_names_list_for_google_search
 
-
+def find_imgs_urls(fc_name, img_number=3):
+    browser = webdriver.Firefox()
+    url = f"http://www.google.com/search?q={fc_name}&tbm=isch&tbs=ift:png"
+    browser.get(url)
+    sleep(2)
+    src_list = list()
+    for num in range(1, img_number+1):
+        img_url = browser.find_element_by_xpath(f'//div//div//div//div//div//div//div//div//div//div[{num}]//a[1]//div[1]//img[1]')
+        img_url.click()
+        sleep(5)
+        src = browser.find_element_by_xpath('//body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div[1]/div[1]/div/div[2]/a/img').get_attribute("src")
+        src_list.append(src)
+    browser.quit()
+    return src_list
