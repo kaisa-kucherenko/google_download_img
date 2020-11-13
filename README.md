@@ -12,7 +12,7 @@ _**xlsm_file**_ path to the xlsm file with a list of search queries
 
 `optional:`
 
-_**-sheet_name**_ is the name of the sheet in the file containing the list of search queries
+_**-sheet_name**_ is the name of the sheet in the file containing the list of search queries (default Sheet1)
 
 _**-img_num**_ how many images to download for each request (default 4)
 
