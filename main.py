@@ -32,8 +32,8 @@ def get_search_query_lists(xlsm_file_name, sheet_name):
     return search_query_list_clean
 
 
-def find_imgs_urls(browser, search_query, img_number, not_fc_club):
-    if not_fc_club:
+def find_imgs_urls(browser, search_query, img_number, fc_club):
+    if fc_club:
         search_query = f'FC+{search_query.replace(" ", "+")}'
     else:
         search_query = search_query.replace(" ", "+")
@@ -79,13 +79,13 @@ def download_imgs(search_query, src_list):
             pass
 
 
-def main(browser, xlsm_file, sheet_name, img_num, not_fc_club):
+def main(browser, xlsm_file, sheet_name, img_num, fc_club):
     search_query_clean = get_search_query_lists(xlsm_file, sheet_name)
     try:
         for query in search_query_clean:
             src_list = find_imgs_urls(browser, query,
                                       img_number=img_num,
-                                      not_fc_club=not_fc_club)
+                                      fc_club=fc_club)
             download_imgs(query, src_list)
     except Exception:
         log.error(f'Something go wrong. I cant download imgs')
@@ -102,8 +102,8 @@ if __name__ == '__main__':
                         help='Sheet name in file (default Sheet1)')
     parser.add_argument('-img_num', type=int, default=4,
                         help='Number downloading imgs per query (default 4)')
-    parser.add_argument('-not_fc_club', action='store_false', default=True,
-                        help='Parse football club names (default True)')
+    parser.add_argument('-fc_club', action='store_true', default=False,
+                        help='Parse football club names (default False)')
     args = parser.parse_args()
 
     firefox_options = webdriver.FirefoxOptions()
@@ -111,5 +111,5 @@ if __name__ == '__main__':
     browser = webdriver.Firefox(options=firefox_options)
 
     main(browser, args.xlsm_file, args.sheet_name,
-         args.img_num, args.not_fc_club)
+         args.img_num, args.fc_club)
 
