@@ -37,18 +37,23 @@ def find_imgs_urls(browser, search_query, img_number, not_fc_club):
         search_query = f'FC+{search_query.replace(" ", "+")}'
     else:
         search_query = search_query.replace(" ", "+")
-    log.warning(f'searchquery {search_query}')
-    url = f"""http://www.google.com/search?q={search_query}&tbm=isch&tbs=ift:png"""
+    log.info(f'Search query {search_query}')
+    url = f"http://www.google.com/search?q={search_query}&tbm=isch&tbs=ift:png"
     browser.get(url)
     log.info(f'Get {search_query} in browser')
     sleep(2)
     src_list = list()
     for num in range(1, img_number+1):
-        img_url = browser.find_element_by_xpath(f'//div//div//div//div//div//div//div//div//div//div[{num}]//a[1]//div[1]//img[1]')
+        img_url = browser.find_element_by_xpath(f'//div//div//div//div//div//'
+                                                f'div//div//div//div//div[{num}]'
+                                                f'//a[1]//div[1]//img[1]')
         img_url.click()
         log.info(f'Looking src of {search_query} in web page')
         sleep(5)
-        src = browser.find_element_by_xpath('//body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div[1]/div[1]/div/div[2]/a/img').get_attribute("src")
+        src = browser.find_element_by_xpath('//body/div[2]/c-wiz/div[3]/div[2]/'
+                                            'div[3]/div/div/div[3]/div[2]/c-wiz'
+                                            '/div[1]/div[1]/div/div[2]'
+                                            '/a/img').get_attribute("src")
         if not src.startswith('data:'):
             log.info(f'I found src of {search_query}')
             src_list.append(src)
@@ -74,8 +79,23 @@ def download_imgs(search_query, src_list):
             pass
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Download png imgs from google')
+def main(browser, xlsm_file, sheet_name, img_num, not_fc_club):
+    search_query_clean = get_search_query_lists(xlsm_file, sheet_name)
+    try:
+        for query in search_query_clean:
+            src_list = find_imgs_urls(browser, query,
+                                      img_number=img_num,
+                                      not_fc_club=not_fc_club)
+            download_imgs(query, src_list)
+    except Exception:
+        log.error(f'Something go wrong. I cant download imgs')
+    finally:
+        browser.quit()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Download png imgs from google')
     parser.add_argument('xlsm_file', type=str,
                         help='File with image search query')
     parser.add_argument('-sheet_name', type=str, default='Sheet1',
@@ -90,19 +110,6 @@ def main():
     firefox_options.headless = True
     browser = webdriver.Firefox(options=firefox_options)
 
-    search_query_clean = get_search_query_lists(args.xlsm_file, args.sheet_name)
-    try:
-        for query in search_query_clean:
-            src_list = find_imgs_urls(browser, query,
-                                      img_number=args.img_num,
-                                      not_fc_club=args.not_fc_club)
-            download_imgs(query, src_list)
-    except Exception:
-        log.error(f'Something go wrong. I cant download imgs')
-    finally:
-        browser.quit()
-
-
-if __name__ == '__main__':
-    main()
+    main(browser, args.xlsm_file, args.sheet_name,
+         args.img_num, args.not_fc_club)
 
