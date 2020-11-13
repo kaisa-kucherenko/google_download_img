@@ -7,21 +7,22 @@ from selenium import webdriver
 from openpyxl import load_workbook
 
 
-def get_fc_names_lists(xlsm_file_name, sheet_name):
+def get_search_query_lists(xlsm_file_name, sheet_name):
     work_book = load_workbook(xlsm_file_name)
     sheet = work_book[sheet_name]
-    fc_names_list_clean = [sheet[f'A{num}'].value.strip() for num in range(1, 1000)
-                           if sheet[f'A{num}'].value]
+    search_query_list_clean = [sheet[f'A{num}'].value.strip() for num
+                               in range(1, 1000)
+                               if sheet[f'A{num}'].value]
     work_book.close()
-    return fc_names_list_clean
+    return search_query_list_clean
 
 
-def find_imgs_urls(browser, fc_name, img_number, fc_club):
-    if fc_club:
-        fc_name = f'FC+{fc_name.replace(" ", "+")}'
+def find_imgs_urls(browser, search_query, img_number, is_fc_club):
+    if is_fc_club:
+        search_query = f'FC+{search_query.replace(" ", "+")}'
     else:
-        fc_name = fc_name.replace(" ", "+")
-    url = f"""http://www.google.com/search?q={fc_name}&tbm=isch&tbs=ift:png"""
+        search_query = search_query.replace(" ", "+")
+    url = f"""http://www.google.com/search?q={search_query}&tbm=isch&tbs=ift:png"""
     browser.get(url)
     sleep(2)
     src_list = list()
@@ -35,14 +36,14 @@ def find_imgs_urls(browser, fc_name, img_number, fc_club):
     return src_list
 
 
-def download_imgs(fc_name, src_list):
+def download_imgs(search_query, src_list):
     directory = os.getcwd()
-    file_name = f'{fc_name}.png'
+    file_name = f'{search_query}.png'
     for index, src in enumerate(src_list):
         if index == 0:
             image_path = os.path.join(directory, file_name)
         else:
-            image_path = os.path.join(directory, f'{fc_name}_{index}.png')
+            image_path = os.path.join(directory, f'{search_query}_{index}.png')
         try:
             response = requests.get(src, stream=True)
             with open(image_path, 'wb') as file:
@@ -60,7 +61,7 @@ def main():
                         help='Sheet name in file (default Sheet1)')
     parser.add_argument('-img_num', type=int, default=4,
                         help='Number downloading imgs per query (default 4)')
-    parser.add_argument('-fc_club', type=bool, default=True,
+    parser.add_argument('-is_fc_club', type=bool, default=True,
                         help='Parse football club names (default True)')
     args = parser.parse_args()
 
@@ -68,13 +69,13 @@ def main():
     firefox_options.headless = True
     browser = webdriver.Firefox(options=firefox_options)
 
-    fc_names_clean = get_fc_names_lists(args.xlsm_file, args.sheet_name)
+    search_query_clean = get_search_query_lists(args.xlsm_file, args.sheet_name)
     try:
-        for fc_name in fc_names_clean:
-            src_list = find_imgs_urls(browser, fc_name,
+        for query in search_query_clean:
+            src_list = find_imgs_urls(browser, query,
                                       img_number=args.img_num,
-                                      fc_club=args.fc_club)
-            download_imgs(fc_name, src_list)
+                                      is_fc_club=args.is_fc_club)
+            download_imgs(query, src_list)
     except Exception:
         print('Something go wrong')
     finally:
