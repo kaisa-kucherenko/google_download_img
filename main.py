@@ -34,7 +34,7 @@ def get_search_query_lists(xlsm_file_name, sheet_name):
 
 def find_imgs_urls(browser, search_query, img_number, fc_club):
     if fc_club:
-        search_query = f'FC+{search_query.replace(" ", "+")}'
+        search_query = f'{search_query.replace(" ", "+")}+fc'
     else:
         search_query = search_query.replace(" ", "+")
     log.info(f'Search query {search_query}')
@@ -43,9 +43,14 @@ def find_imgs_urls(browser, search_query, img_number, fc_club):
     log.info(f'Get {search_query} in browser')
     sleep(2)
     src_list = list()
-    for num in range(1, img_number+1):
+    counter = 1
+    while len(src_list) < img_number:
+        if counter in (2, 39, 79, 119):
+            browser.execute_script("window.scrollTo(0, "
+                                   "document.body.scrollHeight || "
+                                   "document.documentElement.scrollHeight);")
         img_url = browser.find_element_by_xpath(f'//div//div//div//div//div//'
-                                                f'div//div//div//div//div[{num}]'
+                                                f'div//div//div//div//div[{counter}]'
                                                 f'//a[1]//div[1]//img[1]')
         img_url.click()
         log.info(f'Looking src of {search_query} in web page')
@@ -57,6 +62,7 @@ def find_imgs_urls(browser, search_query, img_number, fc_club):
         if not src.startswith('data:'):
             log.info(f'I found src of {search_query}')
             src_list.append(src)
+        counter += 1
     return src_list
 
 
@@ -67,7 +73,8 @@ def download_imgs(search_query, src_list):
         if index == 0:
             image_path = os.path.join(directory, file_name)
         else:
-            image_path = os.path.join(directory, f'{search_query}_{index}.png')
+            image_path = os.path.join(directory,
+                                      f'{search_query}{"_"*index}.png')
         try:
             log.info(f"I'm trying to download a img {search_query}")
             response = requests.get(src, stream=True)
