@@ -34,9 +34,9 @@ def get_search_query_lists(xlsm_file_name, sheet_name):
 
 def contain_string(base_string, sub_string):
     base_string = base_string.lower()
-    if '+' + sub_string in base_string:  # at start of string
+    if base_string.startswith(sub_string + '+'):  # at start of string
         return True
-    elif sub_string + '+' in base_string:  # at end of string
+    elif base_string.endswith('+' + sub_string):  # at end of string
         return True
     elif '+' + sub_string + '+' in base_string:  # at middle of string
         return True
