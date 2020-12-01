@@ -5,6 +5,7 @@ import argparse
 import logging
 from time import sleep
 from selenium import webdriver
+
 from openpyxl import load_workbook
 
 
@@ -34,7 +35,12 @@ def get_search_query_lists(xlsm_file_name, sheet_name):
 
 def find_imgs_urls(browser, search_query, img_number, fc_club):
     if fc_club:
-        search_query = f'{search_query.replace(" ", "+")}+fc'
+        if '/' in search_query:
+            search_query = f'{search_query.replace("/", "-").replace(" ", "+")}+fc'
+        elif '&' in search_query:
+            search_query = f'{search_query.replace("&", "and").replace(" ", "+")}+fc'
+        else:
+            search_query = f'{search_query.replace(" ", "+")}+fc'
     else:
         search_query = search_query.replace(" ", "+")
     log.info(f'Search query {search_query}')
@@ -68,6 +74,8 @@ def find_imgs_urls(browser, search_query, img_number, fc_club):
 
 def download_imgs(search_query, src_list):
     directory = os.getcwd()
+    if '/' in search_query:
+        search_query = search_query.replace("/", "-")
     file_name = f'{search_query}.png'
     for index, src in enumerate(src_list):
         if index == 0:
@@ -115,8 +123,8 @@ if __name__ == '__main__':
 
     firefox_options = webdriver.FirefoxOptions()
     firefox_options.headless = True
+    firefox_options.binary = r'C:\Program Files\Mozilla Firefox\firefox.exe'
     browser = webdriver.Firefox(options=firefox_options)
 
     main(browser, args.xlsm_file, args.sheet_name,
          args.img_num, args.fc_club)
-
