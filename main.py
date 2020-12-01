@@ -5,7 +5,6 @@ import argparse
 import logging
 from time import sleep
 from selenium import webdriver
-
 from openpyxl import load_workbook
 
 
@@ -102,8 +101,8 @@ def main(browser, xlsm_file, sheet_name, img_num, fc_club):
                                       img_number=img_num,
                                       fc_club=fc_club)
             download_imgs(query, src_list)
-    except Exception:
-        log.error(f'Something go wrong. I cant download imgs')
+    except Exception as e:
+        log.error(f'Something go wrong. I cant download imgs {e}')
     finally:
         browser.quit()
 
@@ -121,10 +120,13 @@ if __name__ == '__main__':
                         help='Parse football club names (default False)')
     args = parser.parse_args()
 
+    operating_system = os.name
     firefox_options = webdriver.FirefoxOptions()
     firefox_options.headless = True
-    firefox_options.binary = r'C:\Program Files\Mozilla Firefox\firefox.exe'
+    if operating_system == 'nt':
+        firefox_options.binary = r'C:\Program Files\Mozilla Firefox\firefox.exe'
     browser = webdriver.Firefox(options=firefox_options)
 
     main(browser, args.xlsm_file, args.sheet_name,
          args.img_num, args.fc_club)
+
