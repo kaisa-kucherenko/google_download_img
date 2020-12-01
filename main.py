@@ -32,16 +32,32 @@ def get_search_query_lists(xlsm_file_name, sheet_name):
     return search_query_list_clean
 
 
+def contain_string(base_string, sub_string):
+    base_string = base_string.lower()
+    if '+' + sub_string in base_string:  # at start of string
+        return True
+    elif sub_string + '+' in base_string:  # at end of string
+        return True
+    elif '+' + sub_string + '+' in base_string:  # at middle of string
+        return True
+    else:
+        return False
+
+
 def find_imgs_urls(browser, search_query, img_number, fc_club):
     if fc_club:
         if '/' in search_query:
-            search_query = f'{search_query.replace("/", "-").replace(" ", "+")}+fc'
+            search_query = f'{search_query.replace("/", "-").replace(" ", "+")}'
         elif '&' in search_query:
-            search_query = f'{search_query.replace("&", "and").replace(" ", "+")}+fc'
+            search_query = f'{search_query.replace("&", "and").replace(" ", "+")}'
         else:
-            search_query = f'{search_query.replace(" ", "+")}+fc'
+            search_query = f'{search_query.replace(" ", "+")}'
     else:
         search_query = search_query.replace(" ", "+")
+    # if search_query has 'fc' (begin, middle, end of string) - do not add fc
+    if not contain_string(search_query, 'fc'):
+        search_query = search_query + '+fc'
+        log.info(f'fc added to search query')
     log.info(f'Search query {search_query}')
     url = f"http://www.google.com/search?q={search_query}&tbm=isch&tbs=ift:png"
     browser.get(url)
